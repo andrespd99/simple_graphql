@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:graphql/client.dart';
 import 'package:simple_graphql/types/exceptions/exceptions.dart';
 
+export 'package:graphql/src/core/policies.dart';
+
 /// {@template graphql_controller}
 
 /// A class that exposes simplified methods for query petitioning with graphql

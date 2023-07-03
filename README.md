@@ -4,26 +4,128 @@
 [![Powered by Mason](https://img.shields.io/endpoint?url=https%3A%2F%2Ftinyurl.com%2Fmason-badge)](https://github.com/felangel/mason)
 [![License: BSD 3-Clause][license_badge]][license_link]
 
-A simplified GraphQL controller
+## Introduction
 
-## Installation 💻
+A simplified version of [graphql][graphql] package that saves you from all the boilerplate code. Cheers 🍻!
 
-**❗ In order to start using Simple Graphql you must have the [Flutter SDK][flutter_install_link] installed on your machine.**
+- [Simple Graphql](#simple-graphql)
+  - [Introduction](#introduction)
+  - [Get started](#get-started)
+    - [Create a query](#create-a-query)
+    - [Create a mutation](#create-a-mutation)
+- [Advanced usage](#advanced-usage)
+  - [Authentication and custom headers](#authentication-and-custom-headers)
+  - [Custom policies](#custom-policies)
 
-Add `simple_graphql` to your `pubspec.yaml`:
 
-```yaml
-dependencies:
-  simple_graphql:
+
+
+## Get started
+
+Like the name implies, using this package is simple. Just import the package, and create a new `SimpleGraphQl` instance with your custom URL. 
+
+```dart
+import 'package:simple_graphql/simple_graphql.dart';
+
+final client = SimpleGraphQl(apiUrl: 'https://api.myapi.example/graphql');
 ```
 
-Install it:
+**Note**: API URLs must specify the graphql path at the end.
 
-```sh
-flutter packages get
+### Create a query
+
+To execute a query, just call the `query()` method.
+
+```dart
+final client = SimpleGraphQl(apiUrl: 'https://api.myapi.example/graphql');
+
+final result = client.query(
+  query: "<Your query goes here>",
+  resultBuilder: (data) {
+    // Here is where you would want to serialize the result.
+    return data;
+  },
+);
 ```
 
+The `resultBuilder` parameter is a handy builder that returns a `Map` with the decoded result. You may serialize the result to a concrete object, or handle it as a `Map`.
 
+When serializing to concrete classes, it is recommended to specify the type of the class, like so:
+
+```dart
+final result = client.query<User>(
+  query: '''
+    query ExampleQuery() {
+      getUser {
+        id,
+        name,
+        email
+      }
+    }
+  
+  ''',
+  resultBuilder: (data) {
+    return User.fromMap(data['getUser']);
+  },
+);
+```
+
+The first layer of the `Map` parameter of `resultBuilder` will always be named like the query or mutation being called. In the example above, the query is named `getUser`.
+
+### Create a mutation 
+
+Similar to executing queries, to execute a mutation, call the `mutate()` method.
+
+```dart
+final client = SimpleGraphQl(apiUrl: 'https://api.myapi.example/graphql');
+
+final result = client.mutation(
+  query: "<Your mutation goes here>",
+  resultBuilder: (data) {
+    // Here is where you would want to serialize the result.
+    return data;
+  },
+);
+```
+
+# Advanced usage
+
+
+## Authentication and custom headers
+
+To set custom headers and authentication tokens for all your petitions, you must declare them when creating a `SimpleGraphQl` instance.
+
+```dart
+final client = SimpleGraphQl(
+  apiUrl: 'https://api.myapi.example/graphql',
+  headers: {
+    'customHeaderKey': 'Custom value',
+  },
+  token: 'Bearer $token',
+);
+```
+
+By default, the token's header key is `Authorization`, but you can override it by setting the [headerKey] parameter when creating a new instance of `SimpleGraphQl`.
+
+
+
+## Custom policies
+
+Like the original package, you can define the policies for your petition.
+
+The available policies are to be defined are fetching, error and cache re-read policies. Todo do so, you can set the policies for both `query()` and `mutation()` methods via parameter, with the same [Policies] class from [graphql][graphql] package. Example below:
+
+```dart
+final client = SimpleGraphQl()
+
+final result = client.mutation(
+  fetchPolicy: FetchPolicy.noCache,
+  cacheRereadPolicy: CacheRereadPolicy.mergeOptimistic,
+  errorPolicy: ErrorPolicy.ignore,
+  mutation: ...,
+  resultBuilder: (data) => ...,
+);
+```
 
 [flutter_install_link]: https://docs.flutter.dev/get-started/install
 [github_actions_link]: https://docs.github.com/en/actions/learn-github-actions
@@ -40,3 +142,4 @@ flutter packages get
 [very_good_ventures_link_light]: https://verygood.ventures#gh-light-mode-only
 [very_good_ventures_link_dark]: https://verygood.ventures#gh-dark-mode-only
 [very_good_workflows_link]: https://github.com/VeryGoodOpenSource/very_good_workflows
+[graphql]: https://pub.dev/packages/graphql
