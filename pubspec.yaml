@@ -1,7 +1,6 @@
 name: simple_graphql
 description: A simplified GraphQL controller
 version: 0.1.0+1
-publish_to: https://pub.dev/
 repository: https://github.com/andrespd99/simple_graphql/
 
 environment:
