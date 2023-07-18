@@ -4,6 +4,7 @@ import 'package:graphql/client.dart';
 import 'package:simple_graphql/types/exceptions/exceptions.dart';
 
 export 'package:graphql/src/core/policies.dart';
+export 'package:simple_graphql/types/exceptions/exceptions.dart';
 
 /// {@template graphql_controller}
 
