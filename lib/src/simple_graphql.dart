@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:graphql/client.dart';
+import 'package:meta/meta.dart';
 import 'package:simple_graphql/types/exceptions/exceptions.dart';
 
 export 'package:graphql/src/core/policies.dart';
@@ -83,7 +84,7 @@ class SimpleGraphQl {
       final res = await _client.query(options);
 
       if (res.hasException) {
-        _handleException(res.exception!);
+        handleException(res.exception!);
       }
 
       return resultBuilder(res.data ?? <String, dynamic>{});
@@ -122,7 +123,7 @@ class SimpleGraphQl {
       final res = await _client.mutate(options);
 
       if (res.hasException) {
-        _handleException(res.exception!);
+        handleException(res.exception!);
       }
 
       return resultBuilder(res.data ?? <String, dynamic>{});
@@ -132,7 +133,8 @@ class SimpleGraphQl {
   }
 
   /// Handles exceptions thrown by the GraphQL library.
-  void _handleException(OperationException exception) {
+  @protected
+  void handleException(OperationException exception) {
     if (exception.linkException != null) {
       log(
         '❌ [LinkException] thrown when executing query or mutation',
