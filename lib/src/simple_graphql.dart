@@ -84,9 +84,9 @@ class SimpleGraphQl {
   /// `null` results should be handled by the caller.
   ///
   /// Throws a [SimpleGqlException] if the mutation fails.
-  Future<T?> query<T>({
+  Future<T> query<T>({
     required String query,
-    T Function(Map<String, dynamic> data)? resultBuilder,
+    required T Function(Map<String, dynamic> data) resultBuilder,
     Map<String, String>? headers,
     Map<String, dynamic>? variables,
     FetchPolicy? fetchPolicy,
@@ -123,11 +123,7 @@ class SimpleGraphQl {
         handleException(res.exception!);
       }
 
-      if (resultBuilder != null) {
-        return resultBuilder(res.data ?? <String, dynamic>{});
-      }
-
-      return null;
+      return resultBuilder(res.data ?? <String, dynamic>{});
     } catch (e) {
       rethrow;
     }
@@ -143,9 +139,9 @@ class SimpleGraphQl {
   /// `null` results should be handled in the function that calls this.
   ///
   /// Throws [SimpleGqlException] if query fails.
-  Future<T?> mutation<T>({
+  Future<T> mutation<T>({
     required String mutation,
-    T Function(Map<String, dynamic> data)? resultBuilder,
+    required T Function(Map<String, dynamic> data) resultBuilder,
     Map<String, String>? headers,
     Map<String, dynamic>? variables,
     FetchPolicy? fetchPolicy,
@@ -180,10 +176,7 @@ class SimpleGraphQl {
         handleException(res.exception!);
       }
 
-      if (resultBuilder != null) {
-        return resultBuilder(res.data ?? <String, dynamic>{});
-      }
-      return null;
+      return resultBuilder(res.data ?? <String, dynamic>{});
     } catch (e) {
       rethrow;
     }
