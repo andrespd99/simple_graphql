@@ -16,6 +16,7 @@ A simplified version of [graphql][graphql] package that saves you from all the b
 - [Advanced usage](#advanced-usage)
   - [Authentication and custom headers](#authentication-and-custom-headers)
   - [Custom policies](#custom-policies)
+  - [Testing](#testing)
 
 
 
@@ -125,6 +126,31 @@ final result = client.mutation(
   mutation: ...,
   resultBuilder: (data) => ...,
 );
+```
+
+## Testing
+
+To write unit tests for your queries and mutations, you can use the `SimpleGraphQlMock` class to mock the responses. 
+
+```dart
+test('query should execute successfully', () async {
+      final client = SimpleGraphQlMock(
+      final responseExpected = {'username': 'john_doe', 'password': '12345'};
+        apiUrl: apiUrl,
+        handler: (operation, variables, token) {
+          return MockQueryResult.test(data: responseExpected);
+        },
+      );
+      final response = await client.query(
+        query: 'query ExampleQuery { data }',
+        resultBuilder: (data) => data,
+      );
+
+      expect(
+        response,
+        responseExpected,
+      );
+    });
 ```
 
 [flutter_install_link]: https://docs.flutter.dev/get-started/install

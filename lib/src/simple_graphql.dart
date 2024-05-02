@@ -5,39 +5,40 @@ import 'package:meta/meta.dart';
 import 'package:simple_graphql/types/exceptions/exceptions.dart';
 
 export 'package:graphql/src/core/policies.dart';
+export 'package:graphql/src/links/links.dart';
 export 'package:simple_graphql/types/exceptions/exceptions.dart';
 
 /// {@template graphql_controller}
-
 /// A class that exposes simplified methods for query petitioning with graphql
 /// library.
 ///
-/// If authorization is required, pass the `token` parameter. By default, the
-/// header key is `Authorization`, but you can change it with the `headerKey`
-/// parameter.
+/// If authorization is required, pass the `token` parameter.
 ///
-/// `token` is the token to be used in the authorization header.
-/// Must include prefixes, e.g. `Bearer $token`
+/// The `token` is used in the authorization header. Must include prefixes,
+/// e.g. `Bearer $token`. By default, the header key is `Authorization`, but can
+/// be changed in the `authHeaderKey` parameter.
 /// {@endtemplate}
 class SimpleGraphQl {
   /// {@macro graphql_controller}
   SimpleGraphQl({
     required String apiUrl,
     Map<String, String>? headers,
-    String headerKey = 'Authorization',
+    @Deprecated('Use `authHeaderKey` instead of `headerKey`') String? headerKey,
+    String authHeaderKey = 'Authorization',
     String? token,
   }) {
+    _apiUrl = apiUrl;
     final httpLink = HttpLink(
       apiUrl,
       defaultHeaders: headers ?? {},
     );
 
     final authLink = AuthLink(
-      headerKey: headerKey,
+      headerKey: headerKey ?? authHeaderKey,
       getToken: () async => token,
     );
 
-    _client = GraphQLClient(
+    client = GraphQLClient(
       cache: GraphQLCache(),
       link: authLink.concat(httpLink),
     );
@@ -45,7 +46,27 @@ class SimpleGraphQl {
 
   static const _source = 'SimpleGraphQl';
 
-  late final GraphQLClient _client;
+  late final String _apiUrl;
+
+  /// GraphQLClient instance used on [query] and [mutation] methods.
+  ///
+  /// Change this instance if you want to use a different client, or need to
+  /// change the headers or the link.
+  late GraphQLClient client;
+
+  /// Updates the token used in the authorization header on queries and
+  /// mutations.
+  void setToken({
+    required String token,
+    String? authHeaderKey = 'Authorization',
+  }) {
+    client.copyWith(
+      link: AuthLink(
+        headerKey: authHeaderKey ?? 'Authorization',
+        getToken: () async => token,
+      ),
+    );
+  }
 
   /// Loads GraphQL query results.
   ///
@@ -63,9 +84,10 @@ class SimpleGraphQl {
   /// `null` results should be handled by the caller.
   ///
   /// Throws a [SimpleGqlException] if the mutation fails.
-  Future<T> query<T>({
+  Future<T?> query<T>({
     required String query,
-    required T Function(Map<String, dynamic> data) resultBuilder,
+    T Function(Map<String, dynamic> data)? resultBuilder,
+    Map<String, String>? headers,
     Map<String, dynamic>? variables,
     FetchPolicy? fetchPolicy,
     CacheRereadPolicy? cacheRereadPolicy,
@@ -73,6 +95,20 @@ class SimpleGraphQl {
     Duration? pollInterval,
   }) async {
     try {
+      // ignore: no_leading_underscores_for_local_identifiers
+      var _client = client;
+
+      if (headers?.isNotEmpty ?? false) {
+        final httpLink = HttpLink(
+          _apiUrl,
+          defaultHeaders: headers!,
+        );
+
+        _client = client.copyWith(
+          link: client.link.concat(httpLink),
+        );
+      }
+
       final options = QueryOptions(
         document: gql(query),
         variables: variables ?? <String, dynamic>{},
@@ -87,7 +123,11 @@ class SimpleGraphQl {
         handleException(res.exception!);
       }
 
-      return resultBuilder(res.data ?? <String, dynamic>{});
+      if (resultBuilder != null) {
+        return resultBuilder(res.data ?? <String, dynamic>{});
+      }
+
+      return null;
     } catch (e) {
       rethrow;
     }
@@ -103,15 +143,29 @@ class SimpleGraphQl {
   /// `null` results should be handled in the function that calls this.
   ///
   /// Throws [SimpleGqlException] if query fails.
-  Future<T> mutation<T>({
+  Future<T?> mutation<T>({
     required String mutation,
-    required T Function(Map<String, dynamic> data) resultBuilder,
+    T Function(Map<String, dynamic> data)? resultBuilder,
+    Map<String, String>? headers,
     Map<String, dynamic>? variables,
     FetchPolicy? fetchPolicy,
     CacheRereadPolicy? cacheRereadPolicy,
     ErrorPolicy? errorPolicy,
   }) async {
     try {
+      // ignore: no_leading_underscores_for_local_identifiers
+      var _client = client;
+
+      if (headers?.isNotEmpty ?? false) {
+        final httpLink = HttpLink(
+          _apiUrl,
+          defaultHeaders: headers!,
+        );
+
+        _client = client.copyWith(
+          link: client.link.concat(httpLink),
+        );
+      }
       final options = MutationOptions(
         document: gql(mutation),
         variables: variables ?? <String, dynamic>{},
@@ -126,7 +180,10 @@ class SimpleGraphQl {
         handleException(res.exception!);
       }
 
-      return resultBuilder(res.data ?? <String, dynamic>{});
+      if (resultBuilder != null) {
+        return resultBuilder(res.data ?? <String, dynamic>{});
+      }
+      return null;
     } catch (e) {
       rethrow;
     }
