@@ -1,7 +1,7 @@
 ## 1.0.0
+* `SimpleGraphQl` constructor does not require `apiUrl` anymore. Instead, `query()` and `mutation()` methods require the `apiUrl` parameter.
+* Constructor still accepts `authHeaderKey` and `token` optional parameter for token-based requests.
 * New test examples in `example` folder.
-* `SimpleGraphQl.client` is not final anymore, so it can updated or mocked.
-* `SimpleGraphQl.setToken` shortcut method that allows to set the token for the client directly.
 * `headerKey` parameter in constructor was marked as deprecated in favor of `authHeaderKey`. It will be removed in future versions.
 ## 0.1.0+2
 * Documentation update.
