@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:graphql/client.dart';
-import 'package:meta/meta.dart';
 import 'package:simple_graphql/types/exceptions/exceptions.dart';
 
 export 'package:graphql/src/core/policies.dart';
@@ -21,50 +20,34 @@ export 'package:simple_graphql/types/exceptions/exceptions.dart';
 class SimpleGraphQl {
   /// {@macro graphql_controller}
   SimpleGraphQl({
-    required String apiUrl,
-    Map<String, String>? headers,
     @Deprecated('Use `authHeaderKey` instead of `headerKey`') String? headerKey,
     String authHeaderKey = 'Authorization',
     String? token,
   }) {
-    _apiUrl = apiUrl;
-    final httpLink = HttpLink(
-      apiUrl,
-      defaultHeaders: headers ?? {},
-    );
-
-    final authLink = AuthLink(
-      headerKey: headerKey ?? authHeaderKey,
-      getToken: () async => token,
-    );
-
-    client = GraphQLClient(
-      cache: GraphQLCache(),
-      link: authLink.concat(httpLink),
+    authHeader = (
+      authKey: headerKey ?? authHeaderKey,
+      token: token,
     );
   }
 
   static const _source = 'SimpleGraphQl';
 
-  late final String _apiUrl;
+  /// Authorization header. The first value is the header key, and the second
+  /// is the token.
+  late ({String authKey, String? token}) authHeader;
 
-  /// GraphQLClient instance used on [query] and [mutation] methods.
-  ///
-  /// Change this instance if you want to use a different client, or need to
-  /// change the headers or the link.
-  late GraphQLClient client;
+  /// GraphQL API URL.
+  late String apiUrl;
 
   /// Updates the token used in the authorization header on queries and
   /// mutations.
   void setToken({
     required String token,
-    String? authHeaderKey = 'Authorization',
+    String? authHeaderKey,
   }) {
-    client.copyWith(
-      link: AuthLink(
-        headerKey: authHeaderKey ?? 'Authorization',
-        getToken: () async => token,
-      ),
+    authHeader = (
+      authKey: authHeaderKey ?? authHeader.authKey,
+      token: token,
     );
   }
 
@@ -95,19 +78,20 @@ class SimpleGraphQl {
     Duration? pollInterval,
   }) async {
     try {
-      // ignore: no_leading_underscores_for_local_identifiers
-      var _client = client;
+      final httpLink = HttpLink(
+        apiUrl,
+        defaultHeaders: headers ?? {},
+      );
 
-      if (headers?.isNotEmpty ?? false) {
-        final httpLink = HttpLink(
-          _apiUrl,
-          defaultHeaders: headers!,
-        );
+      final authLink = AuthLink(
+        headerKey: authHeader.authKey,
+        getToken: () async => authHeader.token,
+      );
 
-        _client = client.copyWith(
-          link: client.link.concat(httpLink),
-        );
-      }
+      final client = GraphQLClient(
+        cache: GraphQLCache(),
+        link: authLink.concat(httpLink),
+      );
 
       final options = QueryOptions(
         document: gql(query),
@@ -117,10 +101,10 @@ class SimpleGraphQl {
         errorPolicy: errorPolicy,
       );
 
-      final res = await _client.query(options);
+      final res = await client.query(options);
 
       if (res.hasException) {
-        handleException(res.exception!);
+        _handleException(res.exception!);
       }
 
       return resultBuilder(res.data ?? <String, dynamic>{});
@@ -149,19 +133,21 @@ class SimpleGraphQl {
     ErrorPolicy? errorPolicy,
   }) async {
     try {
-      // ignore: no_leading_underscores_for_local_identifiers
-      var _client = client;
+      final httpLink = HttpLink(
+        apiUrl,
+        defaultHeaders: headers ?? {},
+      );
 
-      if (headers?.isNotEmpty ?? false) {
-        final httpLink = HttpLink(
-          _apiUrl,
-          defaultHeaders: headers!,
-        );
+      final authLink = AuthLink(
+        headerKey: authHeader.authKey,
+        getToken: () async => authHeader.token,
+      );
 
-        _client = client.copyWith(
-          link: client.link.concat(httpLink),
-        );
-      }
+      final client = GraphQLClient(
+        cache: GraphQLCache(),
+        link: authLink.concat(httpLink),
+      );
+
       final options = MutationOptions(
         document: gql(mutation),
         variables: variables ?? <String, dynamic>{},
@@ -170,10 +156,10 @@ class SimpleGraphQl {
         errorPolicy: errorPolicy,
       );
 
-      final res = await _client.mutate(options);
+      final res = await client.mutate(options);
 
       if (res.hasException) {
-        handleException(res.exception!);
+        _handleException(res.exception!);
       }
 
       return resultBuilder(res.data ?? <String, dynamic>{});
@@ -183,8 +169,7 @@ class SimpleGraphQl {
   }
 
   /// Handles exceptions thrown by the GraphQL library.
-  @protected
-  void handleException(OperationException exception) {
+  void _handleException(OperationException exception) {
     if (exception.linkException != null) {
       log(
         '❌ [LinkException] thrown when executing query or mutation',
