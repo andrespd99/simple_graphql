@@ -36,9 +36,6 @@ class SimpleGraphQl {
   /// is the token.
   late ({String authKey, String? token}) authHeader;
 
-  /// GraphQL API URL.
-  late String apiUrl;
-
   /// Updates the token used in the authorization header on queries and
   /// mutations.
   void setToken({
@@ -68,6 +65,7 @@ class SimpleGraphQl {
   ///
   /// Throws a [SimpleGqlException] if the mutation fails.
   Future<T> query<T>({
+    required String apiUrl,
     required String query,
     required T Function(Map<String, dynamic> data) resultBuilder,
     Map<String, String>? headers,
@@ -124,6 +122,7 @@ class SimpleGraphQl {
   ///
   /// Throws [SimpleGqlException] if query fails.
   Future<T> mutation<T>({
+    required String apiUrl,
     required String mutation,
     required T Function(Map<String, dynamic> data) resultBuilder,
     Map<String, String>? headers,
