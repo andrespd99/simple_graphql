@@ -22,7 +22,7 @@ class AuthService {
     required this.client,
   });
 
-  final SimpleGraphQl client;
+  final SimpleGraphQL client;
 
   Future<LoginResponseDto> login({
     required String username,

@@ -18,9 +18,9 @@ export 'package:simple_graphql/types/exceptions/exceptions.dart';
 /// e.g. `Bearer $token`. By default, the header key is `Authorization`, but can
 /// be changed in the `authHeaderKey` parameter.
 /// {@endtemplate}
-class SimpleGraphQl {
+class SimpleGraphQL {
   /// {@macro graphql_controller}
-  SimpleGraphQl({
+  SimpleGraphQL({
     @Deprecated('Use `authHeaderKey` instead of `headerKey`') String? headerKey,
     String authHeaderKey = 'Authorization',
     String? token,

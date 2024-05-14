@@ -1,3 +1,7 @@
+## 2.0.0
+* Renamed `SimpleGraphQl` to `SimpleGraphQL` for consistency and good dart class naming practices.
+* You can now define your own `GraphQLCache` and http `Client` instances to be used by `SimpleGraphQL`.
+* `query()` and `mutation()` methods now accept optional `client` parameter to use a custom http client on a per-request basis.
 ## 1.0.0
 * `SimpleGraphQl` constructor does not require `apiUrl` anymore. Instead, `query()` and `mutation()` methods require the `apiUrl` parameter.
 * Constructor still accepts `authHeaderKey` and `token` optional parameter for token-based requests.
