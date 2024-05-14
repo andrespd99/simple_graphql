@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:graphql/client.dart';
+import 'package:http/http.dart' as http;
 import 'package:simple_graphql/types/exceptions/exceptions.dart';
 
 export 'package:graphql/src/core/policies.dart';
@@ -23,18 +24,23 @@ class SimpleGraphQl {
     @Deprecated('Use `authHeaderKey` instead of `headerKey`') String? headerKey,
     String authHeaderKey = 'Authorization',
     String? token,
-  }) {
-    authHeader = (
-      authKey: headerKey ?? authHeaderKey,
-      token: token,
-    );
-  }
+    GraphQLCache? cache,
+    http.Client? httpClient,
+  })  : _cache = cache ?? GraphQLCache(),
+        _httpClient = httpClient ?? http.Client(),
+        authHeader = (
+          authKey: headerKey ?? authHeaderKey,
+          token: token,
+        );
 
   static const _source = 'SimpleGraphQl';
 
+  final GraphQLCache _cache;
+  final http.Client _httpClient;
+
   /// Authorization header. The first value is the header key, and the second
   /// is the token.
-  late ({String authKey, String? token}) authHeader;
+  ({String authKey, String? token}) authHeader;
 
   /// Updates the token used in the authorization header on queries and
   /// mutations.
@@ -63,6 +69,9 @@ class SimpleGraphQl {
   ///
   /// `null` results should be handled by the caller.
   ///
+  /// You can specify the `httpClient` to override the default client of this
+  /// instance.
+  ///
   /// Throws a [SimpleGqlException] if the mutation fails.
   Future<T> query<T>({
     required String apiUrl,
@@ -74,10 +83,12 @@ class SimpleGraphQl {
     CacheRereadPolicy? cacheRereadPolicy,
     ErrorPolicy? errorPolicy,
     Duration? pollInterval,
+    http.Client? httpClient,
   }) async {
     try {
       final httpLink = HttpLink(
         apiUrl,
+        httpClient: httpClient ?? _httpClient,
         defaultHeaders: headers ?? {},
       );
 
@@ -87,7 +98,7 @@ class SimpleGraphQl {
       );
 
       final client = GraphQLClient(
-        cache: GraphQLCache(),
+        cache: _cache,
         link: authLink.concat(httpLink),
       );
 
@@ -120,6 +131,9 @@ class SimpleGraphQl {
   ///
   /// `null` results should be handled in the function that calls this.
   ///
+  /// You can specify the `httpClient` to override the default client of this
+  /// instance.
+  ///
   /// Throws [SimpleGqlException] if query fails.
   Future<T> mutation<T>({
     required String apiUrl,
@@ -130,10 +144,12 @@ class SimpleGraphQl {
     FetchPolicy? fetchPolicy,
     CacheRereadPolicy? cacheRereadPolicy,
     ErrorPolicy? errorPolicy,
+    http.Client? httpClient,
   }) async {
     try {
       final httpLink = HttpLink(
         apiUrl,
+        httpClient: httpClient ?? _httpClient,
         defaultHeaders: headers ?? {},
       );
 
@@ -143,7 +159,7 @@ class SimpleGraphQl {
       );
 
       final client = GraphQLClient(
-        cache: GraphQLCache(),
+        cache: _cache,
         link: authLink.concat(httpLink),
       );
 
