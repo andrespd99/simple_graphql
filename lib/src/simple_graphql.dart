@@ -12,6 +12,9 @@ export 'package:simple_graphql/types/exceptions/exceptions.dart';
 /// A class that exposes simplified methods for query petitioning with graphql
 /// library.
 ///
+/// `apiUrl` is the endpoint URL. Must include scheme and path
+/// (including `/graphql` path),
+///
 /// If authorization is required, pass the `token` parameter.
 ///
 /// The `token` is used in the authorization header. Must include prefixes,
@@ -21,6 +24,7 @@ export 'package:simple_graphql/types/exceptions/exceptions.dart';
 class SimpleGraphQL {
   /// {@macro graphql_controller}
   SimpleGraphQL({
+    required this.apiUrl,
     @Deprecated('Use `authHeaderKey` instead of `headerKey`') String? headerKey,
     String authHeaderKey = 'Authorization',
     String? token,
@@ -37,6 +41,10 @@ class SimpleGraphQL {
 
   final GraphQLCache _cache;
   final http.Client _httpClient;
+
+  /// Endpoint URL. Must include scheme and path (including `/graphql` path),
+  /// e.g. `https://example.com/graphql`
+  String apiUrl;
 
   /// Authorization header. The first value is the header key, and the second
   /// is the token.
@@ -74,7 +82,6 @@ class SimpleGraphQL {
   ///
   /// Throws a [SimpleGqlException] if the mutation fails.
   Future<T> query<T>({
-    required String apiUrl,
     required String query,
     required T Function(Map<String, dynamic> data) resultBuilder,
     Map<String, String>? headers,
@@ -136,7 +143,6 @@ class SimpleGraphQL {
   ///
   /// Throws [SimpleGqlException] if query fails.
   Future<T> mutation<T>({
-    required String apiUrl,
     required String mutation,
     required T Function(Map<String, dynamic> data) resultBuilder,
     Map<String, String>? headers,

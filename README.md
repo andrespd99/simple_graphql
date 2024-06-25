@@ -1,4 +1,4 @@
-# Simple Graphql
+# SimpleGraphQL
 
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![Powered by Mason](https://img.shields.io/endpoint?url=https%3A%2F%2Ftinyurl.com%2Fmason-badge)](https://github.com/felangel/mason)
@@ -8,7 +8,7 @@
 
 A simplified version of [graphql][graphql] package that saves you from all the boilerplate code. Cheers 🍻!
 
-- [Simple Graphql](#simple-graphql)
+- [SimpleGraphQL](#simplegraphql)
   - [Introduction](#introduction)
   - [Get started](#get-started)
     - [Create a query](#create-a-query)
