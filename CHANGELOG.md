@@ -1,3 +1,5 @@
+## 2.1.1
+* Upgrade minimum `http` version to `^1.2.1`.
 ## 2.1.0
 * `apiUrl` is no longer declared in `query()` and `mutation()` methods. Instead, it is a constructor parameter. The `apiUrl` parameter is mutable and can be changed at any time.
 ## 2.0.0
