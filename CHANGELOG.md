@@ -1,3 +1,5 @@
+## 2.1.2
+* Downgrade minimum `http` version to `^1.2.0`.
 ## 2.1.1
 * Upgrade minimum `http` version to `^1.2.1`.
 ## 2.1.0

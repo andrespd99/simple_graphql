@@ -1,6 +1,6 @@
 name: simple_graphql
 description: A simplified GraphQL controller
-version: 2.1.1
+version: 2.1.2
 repository: https://github.com/andrespd99/simple_graphql/
 
 environment:
@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   graphql: ^5.1.2
-  http: ^1.2.1
+  http: 1.2.0
 
 dev_dependencies:
   flutter_test:
