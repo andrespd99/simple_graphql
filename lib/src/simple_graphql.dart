@@ -13,7 +13,10 @@ export 'package:simple_graphql/types/exceptions/exceptions.dart';
 /// library.
 ///
 /// `apiUrl` is the endpoint URL. Must include scheme and path
-/// (including `/graphql` path),
+/// (including `/graphql` path). The `apiUrl` can be set on the constructor
+/// or later by assigning a new value to the `apiUrl` property. If either
+/// `query` or `mutation` methods are called before assigning an `apiUrl` value,
+/// an exception will be thrown.
 ///
 /// If authorization is required, pass the `token` parameter.
 ///
@@ -24,13 +27,14 @@ export 'package:simple_graphql/types/exceptions/exceptions.dart';
 class SimpleGraphQL {
   /// {@macro graphql_controller}
   SimpleGraphQL({
-    required this.apiUrl,
+    String? apiUrl,
     @Deprecated('Use `authHeaderKey` instead of `headerKey`') String? headerKey,
     String authHeaderKey = 'Authorization',
     String? token,
     GraphQLCache? cache,
     http.Client? httpClient,
-  })  : _cache = cache ?? GraphQLCache(),
+  })  : apiUrl = apiUrl ?? '',
+        _cache = cache ?? GraphQLCache(),
         _httpClient = httpClient ?? http.Client(),
         authHeader = (
           authKey: headerKey ?? authHeaderKey,
@@ -84,6 +88,8 @@ class SimpleGraphQL {
   Future<T> query<T>({
     required String query,
     required T Function(Map<String, dynamic> data) resultBuilder,
+    String? authHeaderKey,
+    String? token,
     Map<String, String>? headers,
     Map<String, dynamic>? variables,
     FetchPolicy? fetchPolicy,
@@ -92,6 +98,9 @@ class SimpleGraphQL {
     Duration? pollInterval,
     http.Client? httpClient,
   }) async {
+    if (apiUrl.isEmpty) {
+      throw const NoUrlException();
+    }
     try {
       final httpLink = HttpLink(
         apiUrl,
@@ -100,8 +109,8 @@ class SimpleGraphQL {
       );
 
       final authLink = AuthLink(
-        headerKey: authHeader.authKey,
-        getToken: () async => authHeader.token,
+        headerKey: authHeaderKey ?? authHeader.authKey,
+        getToken: () async => token ?? authHeader.token,
       );
 
       final client = GraphQLClient(
@@ -145,6 +154,8 @@ class SimpleGraphQL {
   Future<T> mutation<T>({
     required String mutation,
     required T Function(Map<String, dynamic> data) resultBuilder,
+    String? authHeaderKey,
+    String? token,
     Map<String, String>? headers,
     Map<String, dynamic>? variables,
     FetchPolicy? fetchPolicy,
@@ -152,6 +163,9 @@ class SimpleGraphQL {
     ErrorPolicy? errorPolicy,
     http.Client? httpClient,
   }) async {
+    if (apiUrl.isEmpty) {
+      throw const NoUrlException();
+    }
     try {
       final httpLink = HttpLink(
         apiUrl,
@@ -160,8 +174,8 @@ class SimpleGraphQL {
       );
 
       final authLink = AuthLink(
-        headerKey: authHeader.authKey,
-        getToken: () async => authHeader.token,
+        headerKey: authHeaderKey ?? authHeader.authKey,
+        getToken: () async => token ?? authHeader.token,
       );
 
       final client = GraphQLClient(

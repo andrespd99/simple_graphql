@@ -1,3 +1,7 @@
+## 2.2.0
+* Made `apiUrl` parameter optional. It can be set later by assigning a new value to the `apiUrl` property.
+* Added `NoUrlException` to handle cases where `apiUrl` is not set before calling `query()` or `mutation()` methods.
+* Added `authHeaderKey` and `token` parameters to `query()` and `mutation()` methods. Now you can set the `authHeaderKey` and `token` on a per-request basis.
 ## 2.1.2
 * Downgrade minimum `http` version to `^1.2.0`.
 ## 2.1.1
