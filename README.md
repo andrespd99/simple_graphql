@@ -14,31 +14,37 @@ A simplified version of [graphql][graphql] package that saves you from all the b
     - [Create a query](#create-a-query)
     - [Create a mutation](#create-a-mutation)
 - [Advanced usage](#advanced-usage)
-  - [Authentication and custom headers](#authentication-and-custom-headers)
+  - [Authentication with token-based requests](#authentication-with-token-based-requests)
+    - [Set token on constructor](#set-token-on-constructor)
+    - [Set token on query or mutation](#set-token-on-query-or-mutation)
+  - [Custom headers](#custom-headers)
+    - [Set headers on constructor](#set-headers-on-constructor)
+    - [Set headers on query or mutation](#set-headers-on-query-or-mutation)
   - [Custom policies](#custom-policies)
-  - [Testing](#testing)
 
 
 
 
 ## Get started
 
-Like the name implies, using this package is simple. Just import the package, and create a new `SimpleGraphQl` instance with your custom URL. 
+Like the name implies, using this package is simple. Just import it and create a new `SimpleGraphQL` instance with your custom URL. 
 
 ```dart
 import 'package:simple_graphql/simple_graphql.dart';
 
-final client = SimpleGraphQl(apiUrl: 'https://api.myapi.example/graphql');
+final client = SimpleGraphQL(apiUrl: 'https://api.example/graphql');
 ```
 
-**Note**: API URLs must specify the graphql path at the end.
+> **1st Note**: API URLs must specify the `/graphql` or any other path at the end.
+
+> **2nd Note**: Setting the `apiUrl` property in the constructor is optional. More on this later.
 
 ### Create a query
 
 To execute a query, just call the `query()` method.
 
 ```dart
-final client = SimpleGraphQl(apiUrl: 'https://api.myapi.example/graphql');
+final client = SimpleGraphQL(apiUrl: 'https://api.example/graphql');
 
 final result = client.query(
   query: "<Your query goes here>",
@@ -49,7 +55,7 @@ final result = client.query(
 );
 ```
 
-The `resultBuilder` parameter is a handy builder that returns a `Map` with the decoded result. You may serialize the result to a concrete object, or handle it as a `Map`.
+The `resultBuilder` parameter is a handy builder that returns a `Map` with the decoded result. Here's were you would normally serialize the result into a concrete object, or return the raw `Map` directly.
 
 When serializing to concrete classes, it is recommended to specify the type of the class, like so:
 
@@ -75,10 +81,10 @@ The first layer of the `Map` parameter of `resultBuilder` will always be named l
 
 ### Create a mutation 
 
-Similar to executing queries, to execute a mutation, call the `mutate()` method.
+Similar to executing queries, to execute a mutation, call the `mutation()` method.
 
 ```dart
-final client = SimpleGraphQl(apiUrl: 'https://api.myapi.example/graphql');
+final client = SimpleGraphQL(apiUrl: 'https://api.example/graphql');
 
 final result = client.mutation(
   query: "<Your mutation goes here>",
@@ -91,23 +97,93 @@ final result = client.mutation(
 
 # Advanced usage
 
+## Authentication with token-based requests
 
-## Authentication and custom headers
+You can set a token to be used in the authorization header in two ways. You can either set it on the constructor, or on each query/mutation.
 
-To set custom headers and authentication tokens for all your petitions, you must declare them when creating a `SimpleGraphQl` instance.
+### Set token on constructor
 
 ```dart
-final client = SimpleGraphQl(
+final client = SimpleGraphQL(
+  apiUrl: 'https://api.example/graphql',
+  token: 'Bearer $token', // Must include prefixes, like "Bearer"
+  authHeaderKey = 'Authorization', // Optional, defaults to 'Authorization'
+);
+```
+
+This will set the token to be used in the [AuthLink] on all queries and mutations.
+
+### Set token on query or mutation
+
+```dart
+final client = SimpleGraphQL(apiUrl: 'https://api.example/graphql');
+
+final result = client.query(
+  query: "<Your query goes here>",
+  resultBuilder: (data) {
+    // Here is where you would want to serialize the result.
+    return data;
+  },
+  token: 'Bearer $token', // Must include prefixes, like "Bearer"
+  authHeaderKey = 'Authorization', // Optional, defaults to 'Authorization'
+);
+```
+
+This will set the token to be used in the [AuthLink] on the query or mutation. Will override any token set on the constructor.
+
+## Custom headers
+
+You can set custom headers in different ways, similar to the token. You can either set them on the constructor, or on each query/mutation.
+
+### Set headers on constructor
+
+```dart
+final client = SimpleGraphQL(
+  apiUrl: 'https://api.example/graphql',
+  defaultHeaders: {
+    'customHeaderKey': 'Custom value',
+  },
+);
+```
+
+### Set headers on query or mutation
+
+```dart
+final client = SimpleGraphQL(apiUrl: 'https://api.example/graphql');
+
+final result = client.query(
+  headers: {
+    'customHeaderKey': 'Custom value',
+  },
+  query: "<Your query goes here>",
+  resultBuilder: (data) {
+    // Here is where you would want to serialize the result.
+    return data;
+  },
+);
+```
+
+By default, the `headers` parameter of both `query()` and `mutation()` methods will be merged with the `defaultHeaders` passed to the constructor. You can change this behavior with the `headersInjectionBehavior` parameter.
+
+```dart
+final client = SimpleGraphQL(
   apiUrl: 'https://api.myapi.example/graphql',
   headers: {
     'customHeaderKey': 'Custom value',
   },
-  token: 'Bearer $token',
+);
+
+final result = client.query(
+  headers: {
+    'newCustomHeaderKey': 'New custom value (overrides default)',
+  },
+  headersInjectionBehavior: HeadersInjectionBehavior.override,
+  query: "<Your query goes here>",
+  resultBuilder: (data) => data,
 );
 ```
 
-By default, the token's header key is `Authorization`, but you can override it by setting the [headerKey] parameter when creating a new instance of `SimpleGraphQl`.
-
+This will in turn send a map with `newCustomHeaderKey` only, overriding the default headers.
 
 
 ## Custom policies
@@ -117,7 +193,7 @@ Like the original package, you can define the policies for your petition.
 The available policies are to be defined are fetching, error and cache re-read policies. Todo do so, you can set the policies for both `query()` and `mutation()` methods via parameter, with the same [Policies] class from [graphql][graphql] package. Example below:
 
 ```dart
-final client = SimpleGraphQl()
+final client = SimpleGraphQL()
 
 final result = client.mutation(
   fetchPolicy: FetchPolicy.noCache,
@@ -126,31 +202,6 @@ final result = client.mutation(
   mutation: ...,
   resultBuilder: (data) => ...,
 );
-```
-
-## Testing
-
-To write unit tests for your queries and mutations, you can use the `SimpleGraphQlMock` class to mock the responses. 
-
-```dart
-test('query should execute successfully', () async {
-      final client = SimpleGraphQlMock(
-      final responseExpected = {'username': 'john_doe', 'password': '12345'};
-        apiUrl: apiUrl,
-        handler: (operation, variables, token) {
-          return MockQueryResult.test(data: responseExpected);
-        },
-      );
-      final response = await client.query(
-        query: 'query ExampleQuery { data }',
-        resultBuilder: (data) => data,
-      );
-
-      expect(
-        response,
-        responseExpected,
-      );
-    });
 ```
 
 [flutter_install_link]: https://docs.flutter.dev/get-started/install

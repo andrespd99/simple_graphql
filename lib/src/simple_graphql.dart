@@ -2,11 +2,22 @@ import 'dart:developer';
 
 import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 import 'package:simple_graphql/types/exceptions/exceptions.dart';
 
 export 'package:graphql/src/core/policies.dart';
 export 'package:graphql/src/links/links.dart';
 export 'package:simple_graphql/types/exceptions/exceptions.dart';
+
+/// Different ways how the headers injection will be handled by this function
+enum HeadersInjectionBehavior {
+  /// Merges the given headers with the headers set on instance level.
+  merge,
+
+  /// Will ignore any headers configured on instance level and will only use
+  /// the headers passed to the function.
+  override;
+}
 
 /// {@template graphql_controller}
 /// A class that exposes simplified methods for query petitioning with graphql
@@ -23,6 +34,13 @@ export 'package:simple_graphql/types/exceptions/exceptions.dart';
 /// The `token` is used in the authorization header. Must include prefixes,
 /// e.g. `Bearer $token`. By default, the header key is `Authorization`, but can
 /// be changed in the `authHeaderKey` parameter.
+///
+/// You can pass an additional [Client] that will be used on every query and
+/// mutation call if you need to extent the functionality further.
+///
+/// If `defaultHeaders` is declared, it will be used on every query and
+/// mutation call from this [SimpleGraphQL] instance. They will, by default, be
+/// merged with any headers passed to the [query] or [mutation] methods.
 /// {@endtemplate}
 class SimpleGraphQL {
   /// {@macro graphql_controller}
@@ -33,9 +51,11 @@ class SimpleGraphQL {
     String? token,
     GraphQLCache? cache,
     http.Client? httpClient,
+    Map<String, String>? defaultHeaders,
   })  : apiUrl = apiUrl ?? '',
         _cache = cache ?? GraphQLCache(),
         _httpClient = httpClient ?? http.Client(),
+        defaultHeaders = defaultHeaders ?? {},
         authHeader = (
           authKey: headerKey ?? authHeaderKey,
           token: token,
@@ -45,6 +65,9 @@ class SimpleGraphQL {
 
   final GraphQLCache _cache;
   final http.Client _httpClient;
+
+  /// Headers map that will be used on every query and mutation.
+  final Map<String, String> defaultHeaders;
 
   /// Endpoint URL. Must include scheme and path (including `/graphql` path),
   /// e.g. `https://example.com/graphql`
@@ -84,12 +107,22 @@ class SimpleGraphQL {
   /// You can specify the `httpClient` to override the default client of this
   /// instance.
   ///
+  /// If the `headers` argument is passed, it will, by default, be merged with
+  /// any current headers configuration. They will be consumed on this call but
+  /// will not be stored for further use. If you require the new headers to be
+  /// saved for following calls, consider updating [headers] variable instead.
+  ///
+  /// You can override any headers set on this instance by setting
+  /// `headersInjectionBehaviour` to [HeadersInjectionBehavior.override].
+  ///
   /// Throws a [SimpleGqlException] if the mutation fails.
   Future<T> query<T>({
     required String query,
     required T Function(Map<String, dynamic> data) resultBuilder,
     String? authHeaderKey,
     String? token,
+    HeadersInjectionBehavior headersInjectionBehavior =
+        HeadersInjectionBehavior.merge,
     Map<String, String>? headers,
     Map<String, dynamic>? variables,
     FetchPolicy? fetchPolicy,
@@ -102,10 +135,16 @@ class SimpleGraphQL {
       throw const NoUrlException();
     }
     try {
+      final defaultHeaders = (headersInjectionBehavior ==
+              HeadersInjectionBehavior.override)
+          ? headers ?? {}
+          : {...this.defaultHeaders}
+        ..addAll(headers ?? {});
+
       final httpLink = HttpLink(
         apiUrl,
         httpClient: httpClient ?? _httpClient,
-        defaultHeaders: headers ?? {},
+        defaultHeaders: defaultHeaders,
       );
 
       final authLink = AuthLink(
@@ -123,6 +162,7 @@ class SimpleGraphQL {
         variables: variables ?? <String, dynamic>{},
         fetchPolicy: fetchPolicy,
         cacheRereadPolicy: cacheRereadPolicy,
+        pollInterval: pollInterval,
         errorPolicy: errorPolicy,
       );
 
@@ -150,12 +190,22 @@ class SimpleGraphQL {
   /// You can specify the `httpClient` to override the default client of this
   /// instance.
   ///
+  /// If the `headers` argument is passed, it will, by default, be merged with
+  /// any current headers configuration. They will be consumed on this call but
+  /// will not be stored for further use. If you require the new headers to be
+  /// saved for following calls, consider updating [headers] variable instead.
+  ///
+  /// You can override any headers set on this instance by setting
+  /// `headersInjectionBehaviour` to [HeadersInjectionBehavior.override].
+  ///
   /// Throws [SimpleGqlException] if query fails.
   Future<T> mutation<T>({
     required String mutation,
     required T Function(Map<String, dynamic> data) resultBuilder,
     String? authHeaderKey,
     String? token,
+    HeadersInjectionBehavior headersInjectionBehaviour =
+        HeadersInjectionBehavior.merge,
     Map<String, String>? headers,
     Map<String, dynamic>? variables,
     FetchPolicy? fetchPolicy,
@@ -167,10 +217,16 @@ class SimpleGraphQL {
       throw const NoUrlException();
     }
     try {
+      final defaultHeaders = (headersInjectionBehaviour ==
+              HeadersInjectionBehavior.override)
+          ? headers ?? {}
+          : {...this.defaultHeaders}
+        ..addAll(headers ?? {});
+
       final httpLink = HttpLink(
         apiUrl,
         httpClient: httpClient ?? _httpClient,
-        defaultHeaders: headers ?? {},
+        defaultHeaders: defaultHeaders,
       );
 
       final authLink = AuthLink(

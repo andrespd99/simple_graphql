@@ -1,3 +1,8 @@
+## 2.3.0
+* feat: added `defaultHeaders` parameter to `SimpleGraphQL` constructor to set default headers for all queries and mutations.
+* feat: added `headersInjectionBehavior` parameter to `query()` and `mutation()` methods. It allows you to choose if the `headers` parameter should be merged with the `defaultHeaders` or override them.
+* fix: `pollInterval` parameter of `query()` is now passed to `QueryOptions`, as it was being ignored.
+* docs: README.md updated and improved with more examples of new features.
 ## 2.2.0
 * Made `apiUrl` parameter optional. It can be set later by assigning a new value to the `apiUrl` property.
 * Added `NoUrlException` to handle cases where `apiUrl` is not set before calling `query()` or `mutation()` methods.
