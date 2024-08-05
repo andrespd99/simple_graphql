@@ -53,7 +53,7 @@ class SimpleGraphQL {
     http.Client? httpClient,
     Map<String, String>? defaultHeaders,
   })  : apiUrl = apiUrl ?? '',
-        _cache = cache ?? GraphQLCache(),
+        _cache = cache,
         _httpClient = httpClient ?? http.Client(),
         defaultHeaders = defaultHeaders ?? {},
         authHeader = (
@@ -63,7 +63,7 @@ class SimpleGraphQL {
 
   static const _source = 'SimpleGraphQl';
 
-  final GraphQLCache _cache;
+  final GraphQLCache? _cache;
   final http.Client _httpClient;
 
   /// Headers map that will be used on every query and mutation.
@@ -153,7 +153,7 @@ class SimpleGraphQL {
       );
 
       final client = GraphQLClient(
-        cache: _cache,
+        cache: _cache ?? GraphQLCache(),
         link: authLink.concat(httpLink),
       );
 
@@ -235,7 +235,7 @@ class SimpleGraphQL {
       );
 
       final client = GraphQLClient(
-        cache: _cache,
+        cache: _cache ?? GraphQLCache(),
         link: authLink.concat(httpLink),
       );
 
