@@ -1,3 +1,5 @@
+## 1.0.1
+* fix: Solved a bug related to GraphQLCache `cache` param that cached all queries and mutations in an unexpected way. Will remove parameter until bug is fixed and feature is implemented completely in the future
 ## 1.0.0
 * fix (breaking!): Renamed from `SimpleGraphQl` to `SimpleGraphQL` for consistency and good Dart class naming practices.
 * feat: added `defaultHeaders` parameter to `SimpleGraphQL` constructor to set default headers for all queries and mutations.
