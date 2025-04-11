@@ -4,6 +4,7 @@ import 'package:graphql/client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:simple_graphql/types/exceptions/exceptions.dart';
+import 'package:simple_graphql/types/simple_query_result.dart';
 
 export 'package:graphql/src/core/policies.dart';
 export 'package:graphql/src/links/links.dart';
@@ -256,6 +257,83 @@ class SimpleGraphQL {
       }
 
       return resultBuilder(res.data ?? <String, dynamic>{});
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Loads GraphQL mutation results.
+  ///
+  /// `subscription` is a GraphQL subscription query as a string.
+  ///
+  /// `streamMapper` is the mapper used on the incoming stream of data from
+  /// graphql.
+  ///
+  /// `null` results should be handled in the function that calls this.
+  ///
+  /// You can specify the `httpClient` to override the default client of this
+  /// instance.
+  ///
+  /// If the `headers` argument is passed, it will, by default, be merged with
+  /// any current headers configuration. They will be consumed on this call but
+  /// will not be stored for further use. If you require the new headers to be
+  /// saved for following calls, consider updating [headers] variable instead.
+  ///
+  /// You can override any headers set on this instance by setting
+  /// `headersInjectionBehaviour` to [HeadersInjectionBehavior.override].
+  ///
+  /// Throws [SimpleGqlException] if query fails.
+  Stream<SimpleQueryResult<T>> subcribe<T>({
+    required String mutation,
+    String? authHeaderKey,
+    String? token,
+    HeadersInjectionBehavior headersInjectionBehaviour =
+        HeadersInjectionBehavior.merge,
+    Map<String, String>? headers,
+    Map<String, dynamic>? variables,
+    FetchPolicy? fetchPolicy,
+    CacheRereadPolicy? cacheRereadPolicy,
+    ErrorPolicy? errorPolicy,
+    http.Client? httpClient,
+  }) {
+    if (apiUrl.isEmpty) {
+      throw const NoUrlException();
+    }
+    try {
+      final defaultHeaders = (headersInjectionBehaviour ==
+              HeadersInjectionBehavior.override)
+          ? headers ?? {}
+          : {...this.defaultHeaders}
+        ..addAll(headers ?? {});
+
+      final httpLink = HttpLink(
+        apiUrl,
+        httpClient: httpClient ?? _httpClient,
+        defaultHeaders: defaultHeaders,
+      );
+
+      final authLink = AuthLink(
+        headerKey: authHeaderKey ?? authHeader.authKey,
+        getToken: () async => token ?? authHeader.token,
+      );
+
+      final client = GraphQLClient(
+        cache: GraphQLCache(),
+        // cache: _cache ?? GraphQLCache(),
+        link: authLink.concat(httpLink),
+      );
+
+      final options = SubscriptionOptions(
+        document: gql(mutation),
+        variables: variables ?? <String, dynamic>{},
+        fetchPolicy: fetchPolicy,
+        cacheRereadPolicy: cacheRereadPolicy,
+        errorPolicy: errorPolicy,
+      );
+
+      final res = client.subscribe(options);
+
+      return res.map(SimpleQueryResult.fromQueryResult);
     } catch (e) {
       rethrow;
     }
