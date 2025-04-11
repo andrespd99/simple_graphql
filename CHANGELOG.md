@@ -1,3 +1,5 @@
+## 1.1.0
+* feat: Introduced method for subscription queries. You can use the `subscription` method to send subscription queries to your GraphQL server. This returns a [Stream] of [SimpleQueryResult] objects, which is a wrapper for the [QueryResult] from [graphql](https://pub.dev/packages/graphql) dart package.
 ## 1.0.1
 * fix: Solved a bug related to GraphQLCache `cache` param that cached all queries and mutations in an unexpected way. Will remove parameter until bug is fixed and feature is implemented completely in the future
 ## 1.0.0

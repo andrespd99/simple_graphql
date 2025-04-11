@@ -26,7 +26,6 @@ void main() {
 
       when(
         () => client.query<LoginResponseDto>(
-          apiUrl: '',
           query: any(named: 'query'),
           variables: any(named: 'variables'),
           resultBuilder: any(named: 'resultBuilder'),
@@ -41,7 +40,6 @@ void main() {
 
       final captured = verify(
         () => client.query<LoginResponseDto>(
-          apiUrl: '',
           query: any(named: 'query'),
           variables: captureAny(named: 'variables'),
           resultBuilder: any(named: 'resultBuilder'),
@@ -58,7 +56,6 @@ void main() {
 
       when(
         () => client.query<LoginResponseDto>(
-          apiUrl: '',
           query: any(named: 'query'),
           variables: any(named: 'variables'),
           resultBuilder: any(named: 'resultBuilder'),
@@ -82,7 +79,6 @@ void main() {
 
       when(
         () => client.query<LoginResponseDto>(
-          apiUrl: '',
           query: any(named: 'query'),
           variables: any(named: 'variables'),
           resultBuilder: any(named: 'resultBuilder'),
@@ -107,7 +103,6 @@ void main() {
 
       when(
         () => client.query<LoginResponseDto>(
-          apiUrl: '',
           query: any(named: 'query'),
           variables: any(named: 'variables'),
           resultBuilder: any(named: 'resultBuilder'),

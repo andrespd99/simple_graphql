@@ -39,7 +39,6 @@ class AuthService {
     final variables = {'username': username, 'password': password};
 
     final response = await client.query<LoginResponseDto>(
-        apiUrl: '',
         variables: variables,
         query: query,
         resultBuilder: (data) {
