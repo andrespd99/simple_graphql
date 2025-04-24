@@ -12,3 +12,12 @@ class NoUrlException extends SimpleGqlException {
           'Try setting SimpleGraphQL.apiUrl property first.',
         );
 }
+
+class NoWsUrlException extends SimpleGqlException {
+  /// {@macro no_url_exception}
+  const NoWsUrlException()
+      : super(
+          'Tried to make a subscription call before setting the websocketUrl '
+          'property. Try setting SimpleGraphQL.websocketUrl property first.',
+        );
+}

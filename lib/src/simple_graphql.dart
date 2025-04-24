@@ -47,6 +47,7 @@ class SimpleGraphQL {
   /// {@macro graphql_controller}
   SimpleGraphQL({
     String? apiUrl,
+    String? websocketUrl,
     @Deprecated('Use `authHeaderKey` instead of `headerKey`') String? headerKey,
     String authHeaderKey = 'Authorization',
     String? token,
@@ -54,6 +55,7 @@ class SimpleGraphQL {
     http.Client? httpClient,
     Map<String, String>? defaultHeaders,
   })  : apiUrl = apiUrl ?? '',
+        websocketUrl = websocketUrl ?? '',
         // _cache = cache,
         _httpClient = httpClient ?? http.Client(),
         defaultHeaders = defaultHeaders ?? {},
@@ -73,6 +75,9 @@ class SimpleGraphQL {
   /// Endpoint URL. Must include scheme and path (including `/graphql` path),
   /// e.g. `https://example.com/graphql`
   String apiUrl;
+
+  /// Websocket URL.
+  String websocketUrl;
 
   /// Authorization header. The first value is the header key, and the second
   /// is the token.
@@ -285,7 +290,7 @@ class SimpleGraphQL {
   /// Throws [SimpleGqlException] if query fails.
   Stream<SimpleQueryResult<T>> subcribe<T>({
     required String subscription,
-    required String websocketUrl,
+    required T Function(Map<String, dynamic> data) resultBuilder,
     String? authHeaderKey,
     String? token,
     HeadersInjectionBehavior headersInjectionBehaviour =
@@ -299,6 +304,9 @@ class SimpleGraphQL {
   }) {
     if (apiUrl.isEmpty) {
       throw const NoUrlException();
+    }
+    if (websocketUrl.isEmpty) {
+      throw const NoWsUrlException();
     }
     try {
       final defaultHeaders = (headersInjectionBehaviour ==
@@ -356,7 +364,9 @@ class SimpleGraphQL {
 
       final res = client.subscribe(options);
 
-      return res.map(SimpleQueryResult.fromQueryResult);
+      return res.map(
+        (result) => SimpleQueryResult.fromQueryResult(result, resultBuilder),
+      );
     } catch (e) {
       rethrow;
     }

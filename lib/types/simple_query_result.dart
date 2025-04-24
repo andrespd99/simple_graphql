@@ -13,9 +13,10 @@ class SimpleQueryResult<T extends Object?> {
   @protected
   factory SimpleQueryResult.fromQueryResult(
     QueryResult queryResult,
+    T Function(Map<String, dynamic> data) resultBuilder,
   ) {
     return SimpleQueryResult(
-      data: queryResult.data != null ? queryResult.data!['data'] as T : null,
+      data: queryResult.data != null ? resultBuilder(queryResult.data!) : null,
       exception: queryResult.exception,
     );
   }
