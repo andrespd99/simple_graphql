@@ -338,6 +338,7 @@ class SimpleGraphQL {
             };
           },
         ),
+        subProtocol: GraphQLProtocol.graphqlTransportWs,
       );
 
       final socketLink = wsLink.concat(httpLink);
