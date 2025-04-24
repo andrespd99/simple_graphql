@@ -285,6 +285,7 @@ class SimpleGraphQL {
   /// Throws [SimpleGqlException] if query fails.
   Stream<SimpleQueryResult<T>> subcribe<T>({
     required String subscription,
+    required String websocketUrl,
     String? authHeaderKey,
     String? token,
     HeadersInjectionBehavior headersInjectionBehaviour =
@@ -317,10 +318,32 @@ class SimpleGraphQL {
         getToken: () async => token ?? authHeader.token,
       );
 
+      final wsLink = WebSocketLink(
+        websocketUrl,
+        config: SocketClientConfig(
+          initialPayload: () async {
+            return {
+              'headers': {
+                ...defaultHeaders,
+                authHeaderKey ?? authHeader.authKey: token ?? authHeader.token,
+              },
+            };
+          },
+        ),
+      );
+
+      final socketLink = wsLink.concat(httpLink);
+
+      final finalLink = Link.split(
+        (request) => request.isSubscription,
+        socketLink,
+        authLink,
+      );
+
       final client = GraphQLClient(
         cache: GraphQLCache(),
         // cache: _cache ?? GraphQLCache(),
-        link: authLink.concat(httpLink),
+        link: finalLink,
       );
 
       final options = SubscriptionOptions(
