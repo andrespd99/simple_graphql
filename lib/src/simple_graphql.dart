@@ -284,7 +284,7 @@ class SimpleGraphQL {
   ///
   /// Throws [SimpleGqlException] if query fails.
   Stream<SimpleQueryResult<T>> subcribe<T>({
-    required String mutation,
+    required String subscription,
     String? authHeaderKey,
     String? token,
     HeadersInjectionBehavior headersInjectionBehaviour =
@@ -324,7 +324,7 @@ class SimpleGraphQL {
       );
 
       final options = SubscriptionOptions(
-        document: gql(mutation),
+        document: gql(subscription),
         variables: variables ?? <String, dynamic>{},
         fetchPolicy: fetchPolicy,
         cacheRereadPolicy: cacheRereadPolicy,
