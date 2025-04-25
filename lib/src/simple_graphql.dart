@@ -331,10 +331,8 @@ class SimpleGraphQL {
         config: SocketClientConfig(
           initialPayload: () async {
             return {
-              'headers': {
-                ...defaultHeaders,
-                authHeaderKey ?? authHeader.authKey: token ?? authHeader.token,
-              },
+              ...defaultHeaders,
+              authHeaderKey ?? authHeader.authKey: token ?? authHeader.token,
             };
           },
         ),
