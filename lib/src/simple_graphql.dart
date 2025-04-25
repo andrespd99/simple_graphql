@@ -54,6 +54,7 @@ class SimpleGraphQL {
     // GraphQLCache? cache,
     http.Client? httpClient,
     Map<String, String>? defaultHeaders,
+    this.defaultOperationTimeout,
   })  : apiUrl = apiUrl ?? '',
         websocketUrl = websocketUrl ?? '',
         // _cache = cache,
@@ -78,6 +79,10 @@ class SimpleGraphQL {
 
   /// Websocket URL.
   String websocketUrl;
+
+  /// Timeout for the operation. If not set, the default timeout of the
+  /// [GraphQLClient] will be used.
+  Duration? defaultOperationTimeout;
 
   /// Authorization header. The first value is the header key, and the second
   /// is the token.
@@ -172,7 +177,7 @@ class SimpleGraphQL {
         cacheRereadPolicy: cacheRereadPolicy,
         pollInterval: pollInterval,
         errorPolicy: errorPolicy,
-        queryRequestTimeout: queryRequestTimeout,
+        queryRequestTimeout: queryRequestTimeout ?? defaultOperationTimeout,
       );
 
       final res = await client.query(options);
@@ -256,7 +261,7 @@ class SimpleGraphQL {
         fetchPolicy: fetchPolicy,
         cacheRereadPolicy: cacheRereadPolicy,
         errorPolicy: errorPolicy,
-        queryRequestTimeout: queryRequestTimeout,
+        queryRequestTimeout: queryRequestTimeout ?? defaultOperationTimeout,
       );
 
       final res = await client.mutate(options);
