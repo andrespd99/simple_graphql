@@ -125,6 +125,7 @@ class SimpleGraphQL {
   Future<T> query<T>({
     required String query,
     required T Function(Map<String, dynamic> data) resultBuilder,
+    http.Client? httpClient,
     String? authHeaderKey,
     String? token,
     HeadersInjectionBehavior headersInjectionBehavior =
@@ -135,7 +136,7 @@ class SimpleGraphQL {
     CacheRereadPolicy? cacheRereadPolicy,
     ErrorPolicy? errorPolicy,
     Duration? pollInterval,
-    http.Client? httpClient,
+    Duration? queryRequestTimeout,
   }) async {
     if (apiUrl.isEmpty) {
       throw const NoUrlException();
@@ -171,6 +172,7 @@ class SimpleGraphQL {
         cacheRereadPolicy: cacheRereadPolicy,
         pollInterval: pollInterval,
         errorPolicy: errorPolicy,
+        queryRequestTimeout: queryRequestTimeout,
       );
 
       final res = await client.query(options);
@@ -209,6 +211,7 @@ class SimpleGraphQL {
   Future<T> mutation<T>({
     required String mutation,
     required T Function(Map<String, dynamic> data) resultBuilder,
+    http.Client? httpClient,
     String? authHeaderKey,
     String? token,
     HeadersInjectionBehavior headersInjectionBehaviour =
@@ -218,7 +221,7 @@ class SimpleGraphQL {
     FetchPolicy? fetchPolicy,
     CacheRereadPolicy? cacheRereadPolicy,
     ErrorPolicy? errorPolicy,
-    http.Client? httpClient,
+    Duration? queryRequestTimeout,
   }) async {
     if (apiUrl.isEmpty) {
       throw const NoUrlException();
@@ -253,6 +256,7 @@ class SimpleGraphQL {
         fetchPolicy: fetchPolicy,
         cacheRereadPolicy: cacheRereadPolicy,
         errorPolicy: errorPolicy,
+        queryRequestTimeout: queryRequestTimeout,
       );
 
       final res = await client.mutate(options);
